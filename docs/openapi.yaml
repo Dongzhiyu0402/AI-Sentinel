@@ -1,0 +1,529 @@
+openapi: 3.0.3
+info:
+  title: 合规哨兵 API
+  version: 1.0.0
+  description: |
+    内容合规体检接口。粘贴文本，返回风险清单、依据条文、修改建议与 AI 标识检查结果。
+
+    前端依据本文件实现请求与字段渲染，后端依据本文件实现路由与响应模型；
+    字段变更必须先改本文件，再同步 `backend/app/schemas/models.py` 与 `frontend/assets/app.js`。
+
+    范围限制：单次文本不超过 20000 字符；同一客户端 IP 每小时最多 60 次检测请求。
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://127.0.0.1:8000
+    description: 应用直连（本地开发与内网排查；生产环境仅监听回环，由 Nginx 反代）
+  - url: /
+    description: 同源相对路径。生产域名在部署时由 Nginx 绑定，路径前缀保持 /api/v1 不变
+
+tags:
+  - name: system
+    description: 健康检查与规则库元信息
+  - name: check
+    description: 文本合规检测
+  - name: telemetry
+    description: 页面交互埋点上报
+
+paths:
+  /api/v1/health:
+    get:
+      tags: [system]
+      summary: 健康检查
+      description: 探活用。返回体含 version，用于确认线上运行的是哪个代码版本。
+      operationId: getHealth
+      responses:
+        '200':
+          description: 服务可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                version: 0.3.0
+
+  /api/v1/meta:
+    get:
+      tags: [system]
+      summary: 规则库统计
+      description: |
+        返回规则总数、分类分布、规则库版本与最近更新日期。首页加载时调用，用于展示规则库规模（AC-06）。
+
+        - 页面上的"规则库 N 条 / 覆盖 X 类 / 最近更新"必须取自本接口，禁止硬编码数字。
+        - `categories` 的键为中文分类名，不含"AI标识"（AI 标识检查是独立能力，不计入规则分类统计）。
+        - 展示顺序建议按条数降序、同数按分类名排序，排序在展示层完成，接口不保证键顺序。
+      operationId: getMeta
+      responses:
+        '200':
+          description: 规则库元信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleMeta'
+              example:
+                total_rules: 100
+                categories:
+                  广告法: 38
+                  医疗健康: 22
+                  平台规则: 16
+                  金融理财: 10
+                  教育培训: 8
+                  通用表达: 6
+                version: '2026.10'
+                updated_at: '2026-10-26'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/check:
+    post:
+      tags: [check]
+      summary: 文本合规检测
+      description: |
+        对粘贴文本执行规则匹配，返回每条命中的风险等级、位置、依据条文与修改建议。
+
+        - `findings[].start` / `findings[].end` 为左闭右开区间，可直接对 `text` 切片还原命中内容，前端据此做高亮。
+        - `summary.total` 恒等于 `summary.high + summary.medium + summary.low`。
+        - 命中片段在"引用/转述"等豁免场景下等级降为 `low`，并在 `note` 中提示人工复核。
+        - `has_ai_content` 为作者自述；当其值为 `true` 且文本中未检出显式 AI 标识时，追加一条 `rule_id` 为 `ai-label-missing` 的高风险项（`matched` 为空，`start` 与 `end` 均为 0）。
+        - LLM 增强为可选能力：未配置或调用失败时仍返回完整规则结果，仅 `suggestion` 使用规则模板文案，`suggestion_source` 为 `rule`；模型改写成功时该条为 `llm`。
+        - `summary.elapsed_ms` 是服务端真实耗时，可直接用于报告页"比对 N 条规则，耗时 X 秒"的展示，无需前端自行计时。
+      operationId: postCheck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckRequest'
+            example:
+              text: 本店产品为全网最低价，国家级认证。
+              has_ai_content: false
+      responses:
+        '200':
+          description: 检测完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResponse'
+              example:
+                summary:
+                  high: 2
+                  medium: 0
+                  low: 0
+                  total: 2
+                  elapsed_ms: 18
+                findings:
+                  - rule_id: ad-008
+                    category: 广告法
+                    level: high
+                    matched: 全网最低
+                    start: 5
+                    end: 9
+                    basis: 《广告法》第九条（绝对化用语）、第二十八条（误导性内容）
+                    suggestion: 删除价格绝对化表述，改为“活动价XX元”并标注活动期限
+                    suggestion_source: rule
+                    note: null
+                  - rule_id: ad-001
+                    category: 广告法
+                    level: high
+                    matched: 国家级
+                    start: 11
+                    end: 14
+                    basis: 《广告法》第九条第（三）项
+                    suggestion: 删除“国家级”，改为可验证的具体资质或事实描述
+                    suggestion_source: rule
+                    note: null
+                ai_label:
+                  required: false
+                  detected: false
+                  message: 未声明含 AI 生成内容，跳过标识检查
+                  suggestion: null
+                disclaimer: 本工具仅提供内容风险自查参考，不构成法律意见，不替代平台审核，不保证发布结果。涉及具体法律问题请咨询专业律师。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/events:
+    post:
+      tags: [telemetry]
+      summary: 前端埋点事件上报
+      description: |
+        批量上报页面交互事件。服务端只写结构化日志：不落库、不关联原文、不记明文 IP。
+
+        - 单批最多 20 条；事件名走 2 项白名单（`suggestion_copied` / `error_occurred`），白名单外事件忽略并返回 202（不计入 accepted）；字段不含自由文本，避免借埋点通道夹带用户内容。
+        - `check_submitted` 与 `ai_label_flagged` 由服务端在 `/check` 成功时自行记录；`check_result_viewed` 与 `check_submitted` 冗余，P0 不采集；前端只上报 `suggestion_copied`（带 `rule_id`）与 `error_occurred`（带 `error_code`）。
+        - 日志保留 30 天，不含原文与明文 IP；本接口不落库、不做看板。
+        - 字段名为稳定契约，与 ARCHITECTURE.md 第 5.1 节的服务端埋点字段一致。
+      operationId: postEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventBatch'
+            example:
+              events:
+                - event: suggestion_copied
+                  timestamp: '2026-10-26T07:12:55Z'
+                  device: mobile
+                  rule_id: ad-001
+                - event: error_occurred
+                  timestamp: '2026-10-26T07:13:02Z'
+                  device: mobile
+                  error_code: network_error
+      responses:
+        '202':
+          description: 已接收并写入日志
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAck'
+              example:
+                accepted: 2
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  responses:
+    ValidationError:
+      description: |
+        请求体校验失败。`text` 为空、超过 20000 字符或 `has_ai_content` 类型错误时返回。
+        错误体为 FastAPI 默认结构，`detail` 为错误项数组；前端只展示 `msg` 字段，不直接渲染整个数组。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorDetail'
+          example:
+            detail:
+              - loc: [body, text]
+                msg: String should have at least 1 character
+                type: string_too_short
+    TooManyRequests:
+      description: |
+        检测请求超出配额：同一客户端 IP 每小时最多 60 次。
+        响应头 `Retry-After` 给出建议等待秒数，`detail` 文案同时说明大致几分钟后可再试（两者同源计算，不得互相矛盾）。
+        前端应禁用提交按钮并按 `Retry-After` 显示等待提示。
+      headers:
+        Retry-After:
+          description: 建议客户端等待的秒数，按当前窗口内最早一次请求的时间差向上取整
+          schema:
+            type: integer
+            minimum: 1
+          example: 1820
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDetail'
+          example:
+            detail: 本次检测额度已用完，约 31 分钟后可再次检测
+    InternalError:
+      description: |
+        服务端异常。对外只返回统一文案，不返回堆栈；堆栈仅写服务端日志。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDetail'
+          example:
+            detail: 服务暂时不可用，请稍后重试
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          description: 固定为 ok，非 ok 即视为不可用
+        version:
+          type: string
+          description: 应用版本号，与已发布代码一致
+          example: 0.3.0
+
+    RuleMeta:
+      type: object
+      required: [total_rules, categories, version, updated_at]
+      properties:
+        total_rules:
+          type: integer
+          minimum: 0
+          description: 已加载规则总条数
+          example: 100
+        categories:
+          type: object
+          description: 规则分类到条数的映射，键为中文分类名
+          additionalProperties:
+            type: integer
+            minimum: 0
+          example:
+            广告法: 38
+            医疗健康: 22
+            平台规则: 16
+            金融理财: 10
+            教育培训: 8
+            通用表达: 6
+        version:
+          type: string
+          description: 规则库版本号，取自 rules.yaml 的 version 字段
+          example: '2026.10'
+        updated_at:
+          type: string
+          format: date
+          description: 规则库最近更新日期，取自 rules.yaml 的 updated_at 字段
+          example: '2026-10-26'
+
+    CheckRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 20000
+          description: 待检测文本，按字符计数，1 至 20000 字符
+        has_ai_content:
+          type: boolean
+          default: false
+          description: 作者自述是否包含 AI 生成内容。为 true 时执行 AI 标识检查
+
+    Finding:
+      type: object
+      required: [rule_id, category, level, matched, start, end, basis, suggestion, suggestion_source]
+      properties:
+        rule_id:
+          type: string
+          description: 规则编号；AI 标识缺失项固定为 ai-label-missing
+          example: ad-001
+        category:
+          type: string
+          description: 规则分类
+          example: 广告法
+        level:
+          type: string
+          enum: [high, medium, low]
+          description: 风险等级。high 建议发布前必须修改；medium 建议核对；low 为疑似豁免场景，需人工复核
+        matched:
+          type: string
+          description: 命中的原文片段；ai-label-missing 为空字符串
+          example: 国家级
+        start:
+          type: integer
+          minimum: 0
+          description: 命中开始位置（含），UTF-16 之前的字符下标，可直接用于 text 切片
+          example: 12
+        end:
+          type: integer
+          minimum: 0
+          description: 命中结束位置（不含），end 减 start 等于 matched 的长度
+          example: 15
+        basis:
+          type: string
+          description: 判定依据，法规条文或平台规则名称；条文号不确定时只给规则名称
+          example: 《广告法》第九条第（三）项
+        suggestion:
+          type: string
+          description: 可执行的修改建议；配置 LLM 时为模型生成文案，否则为规则模板文案
+          example: 删除“国家级”，改为可验证的具体资质或事实描述
+        suggestion_source:
+          type: string
+          enum: [rule, llm]
+          description: |
+            建议来源。`rule` 表示取规则库内置模板建议，`llm` 表示由模型改写。
+            未配置模型或调用失败降级时一律为 `rule`，可用于统计模型建议的采纳率。
+          example: rule
+        note:
+          type: string
+          nullable: true
+          description: 附加说明，例如豁免场景提示；无附加说明时为 null
+          example: 疑似豁免场景（引用/转述等），建议人工复核
+
+    CheckSummary:
+      type: object
+      required: [high, medium, low, total, elapsed_ms]
+      properties:
+        high:
+          type: integer
+          minimum: 0
+          description: 高风险命中数
+        medium:
+          type: integer
+          minimum: 0
+          description: 中风险命中数
+        low:
+          type: integer
+          minimum: 0
+          description: 低风险命中数
+        total:
+          type: integer
+          minimum: 0
+          description: 命中总数，等于 high + medium + low
+        elapsed_ms:
+          type: integer
+          minimum: 0
+          description: 服务端处理耗时（毫秒），含规则匹配与可选的 LLM 增强
+          example: 18
+
+    AiLabelCheck:
+      type: object
+      required: [required, detected, message]
+      properties:
+        required:
+          type: boolean
+          description: 是否要求显式 AI 标识，由 has_ai_content 决定
+        detected:
+          type: boolean
+          description: 文本中是否检出显式 AI 标识用语
+        message:
+          type: string
+          description: 检查结论，面向用户展示
+          example: 你声明文中含 AI 生成内容，但未检出显式标识
+        suggestion:
+          type: string
+          nullable: true
+          description: 需要补充标识时的话术建议；无需补充时为 null
+
+    CheckResponse:
+      type: object
+      required: [summary, findings, ai_label, disclaimer]
+      properties:
+        summary:
+          $ref: '#/components/schemas/CheckSummary'
+        findings:
+          type: array
+          description: 命中列表，先按等级 high → medium → low，同级按 start 升序，同一位置按 rule_id 升序
+          items:
+            $ref: '#/components/schemas/Finding'
+        ai_label:
+          $ref: '#/components/schemas/AiLabelCheck'
+        disclaimer:
+          type: string
+          description: 免责声明，前端须原样展示，不得截断
+          example: 本工具仅提供内容风险自查参考，不构成法律意见，不替代平台审核，不保证发布结果。涉及具体法律问题请咨询专业律师。
+
+    ErrorDetail:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: 面向用户的错误说明，包含发生了什么与下一步怎么做
+
+    EventName:
+      type: string
+      enum: [suggestion_copied, error_occurred]
+      description: |
+        事件名白名单，共 2 项；白名单外事件忽略并返回 202。
+        `check_submitted` 由服务端在检测成功时记录（前端不必上报）；`check_result_viewed` 在结果区渲染完成后上报；
+        `suggestion_copied` 在复制某条建议时上报并带 rule_id；`ai_label_flagged` 在检出 AI 标识缺失时上报；
+        `error_occurred` 在请求失败时上报并带 error_code。
+
+    DeviceType:
+      type: string
+      enum: [desktop, mobile, tablet, unknown]
+      description: 设备类型，按 UA 粗分；无法判断时为 unknown
+
+    LevelBreakdown:
+      type: object
+      required: [high, medium, low]
+      properties:
+        high:
+          type: integer
+          minimum: 0
+        medium:
+          type: integer
+          minimum: 0
+        low:
+          type: integer
+          minimum: 0
+
+    EventItem:
+      type: object
+      required: [event, timestamp]
+      properties:
+        event:
+          $ref: '#/components/schemas/EventName'
+        timestamp:
+          type: string
+          format: date-time
+          description: 事件发生时间，ISO 8601，前端取本地时钟并转 UTC
+          example: '2026-10-26T07:12:41Z'
+        device:
+          $ref: '#/components/schemas/DeviceType'
+        elapsed_ms:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: 本次检测耗时，来自 /check 响应的 summary.elapsed_ms
+        finding_count:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: 命中总数，来自 /check 响应的 summary.total
+        by_level:
+          allOf:
+            - $ref: '#/components/schemas/LevelBreakdown'
+          nullable: true
+          description: 分级命中数，来自 /check 响应的 summary
+        rule_id:
+          type: string
+          nullable: true
+          description: 相关规则编号。复制建议时填写，便于按规则聚合采纳率
+          example: ad-001
+        error_code:
+          type: string
+          nullable: true
+          description: 失败事件的状态码，例如 http_429、http_500、network_error
+          example: http_429
+
+    EventBatch:
+      type: object
+      required: [events]
+      properties:
+        events:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: 单次上报最多 20 条，超出返回 422
+          items:
+            $ref: '#/components/schemas/EventItem'
+
+    EventAck:
+      type: object
+      required: [accepted]
+      properties:
+        accepted:
+          type: integer
+          minimum: 0
+          description: 实际写入日志的事件条数，被白名单或字段校验拒绝的不计入
+          example: 2
+
+    ValidationErrorDetail:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  anyOf:
+                    - type: string
+                    - type: integer
+                description: 出错字段路径，例如 ["body", "text"]
+              msg:
+                type: string
+                description: 校验失败原因
+              type:
+                type: string
+                description: 校验失败类型标识

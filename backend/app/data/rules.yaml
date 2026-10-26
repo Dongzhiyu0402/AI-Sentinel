@@ -1,0 +1,222 @@
+version: "2026.10"
+updated_at: "2026-10-26"
+note: "规则库 v2026.10：条文引用以现行法律法规为准，上线前逐条复核；条号不确定时只写规则名称。"
+rules:
+  # ---------- 广告法：绝对化用语 ----------
+  - id: ad-001
+    category: 广告法
+    level: high
+    pattern: 国家级
+    basis: 《广告法》第九条第（三）项
+    suggestion: 删除“国家级”，改为可验证的具体资质或事实描述
+    exempt: 《广告法》/转述/不得使用
+  - id: ad-002
+    category: 广告法
+    level: high
+    pattern: 最高级
+    basis: 《广告法》第九条第（三）项
+    suggestion: 删除“最高级”，改为客观描述，如“通过XX认证”
+    exempt: 《广告法》/转述/不得使用
+  - id: ad-003
+    category: 广告法
+    level: high
+    pattern: 最佳
+    basis: 《广告法》第九条第（三）项
+    suggestion: 改为“较优”或补充可验证的对比依据与来源
+    exempt: 《广告法》/转述
+  - id: ad-004
+    category: 广告法
+    level: high
+    pattern: 最好
+    basis: 《广告法》第九条第（三）项
+    suggestion: 删除“最好”，改为具体参数或使用场景描述
+    exempt: 《广告法》/转述
+  - id: ad-005
+    category: 广告法
+    level: high
+    pattern: 第一品牌
+    basis: 《广告法》第九条第（三）项
+    suggestion: 删除排名表述，或提供权威第三方数据并标注来源与年份
+    exempt: 《广告法》/转述
+  - id: ad-006
+    category: 广告法
+    level: high
+    pattern: 唯一
+    basis: 《广告法》第九条第（三）项
+    suggestion: 删除“唯一”，改为“少见”“差异化”等可验证表述
+    exempt: 《广告法》/转述
+  - id: ad-007
+    category: 广告法
+    level: high
+    pattern: 顶级
+    basis: 《广告法》第九条第（三）项
+    suggestion: 改为具体的材质、工艺或参数描述
+    exempt: 《广告法》/转述
+  - id: ad-008
+    category: 广告法
+    level: high
+    pattern: 全网最低
+    basis: 《广告法》第九条（绝对化用语）、第二十八条（误导性内容）
+    suggestion: 删除价格绝对化表述，改为“活动价XX元”并标注活动期限
+    exempt: 《广告法》/转述
+  - id: ad-009
+    category: 广告法
+    level: high
+    pattern: 史上最低
+    basis: 《广告法》第九条（绝对化用语）
+    suggestion: 同上：给出具体价格与期限，不做历史比较
+    exempt: 《广告法》/转述
+  - id: ad-010
+    category: 广告法
+    level: medium
+    pattern: 仅此一家
+    basis: 《广告法》第九条（绝对化用语，需结合语境判断）
+    suggestion: 改为“本店特色款”等非排他表述
+    exempt: 《广告法》/转述
+  - id: ad-030
+    category: 广告法
+    level: medium
+    pattern: "100\\s*%"
+    is_regex: true
+    basis: 《广告法》第九条（绝对化用语，需结合语境判断）
+    suggestion: 补充口径与来源，如“合格率100%（2026年抽检）”，避免绝对化承诺
+    exempt: 合格率/通过率/满意度/完成率
+
+  # ---------- 特种行业：医疗 / 金融 / 教育 ----------
+  - id: med-001
+    category: 医疗健康
+    level: high
+    pattern: 治愈率
+    basis: 《广告法》第十七条（医疗广告不得说明治愈率或有效率）
+    suggestion: 删除治愈率表述，改为规范的适用范围说明
+    exempt: 科普/转述
+  - id: med-002
+    category: 医疗健康
+    level: high
+    pattern: 根治
+    basis: 《广告法》第十七条（不得作功效断言或保证）
+    suggestion: 改为“辅助改善”，并注明个体差异
+    exempt: 科普/转述
+  - id: med-003
+    category: 医疗健康
+    level: high
+    pattern: 无副作用
+    basis: 《广告法》第十七条（不得作安全性断言或保证）
+    suggestion: 删除绝对化安全性承诺，改为“请在医师指导下使用”
+    exempt: 科普/转述
+  - id: med-004
+    category: 医疗健康
+    level: high
+    pattern: 药到病除
+    basis: 《广告法》第十七条
+    suggestion: 删除疗效保证类表述
+    exempt: 科普/转述
+  - id: med-005
+    category: 医疗健康
+    level: high
+    pattern: 包治百病
+    basis: 《广告法》第十七条
+    suggestion: 删除，改为规范的产品或服务描述
+    exempt: 科普/转述
+  - id: med-006
+    category: 医疗健康
+    level: medium
+    pattern: 有效率
+    basis: 《广告法》第十七条（医疗广告不得说明治愈率或有效率）
+    suggestion: 删除有效率表述，或提供合规的临床数据来源
+    exempt: 科普/转述
+  - id: fin-001
+    category: 金融理财
+    level: high
+    pattern: 保本
+    basis: 《广告法》第二十五条（不得承诺保本、无风险或保收益）
+    suggestion: 删除保本承诺，补充风险提示
+    exempt: 转述/法规
+  - id: fin-002
+    category: 金融理财
+    level: high
+    pattern: 稳赚不赔
+    basis: 《广告法》第二十五条
+    suggestion: 删除收益保证，改为“投资有风险，入市需谨慎”
+    exempt: 转述
+  - id: fin-003
+    category: 金融理财
+    level: high
+    pattern: 零风险
+    basis: 《广告法》第二十五条
+    suggestion: 删除“零风险”，如实提示可能存在的风险
+    exempt: 转述
+  - id: fin-004
+    category: 金融理财
+    level: high
+    pattern: 保收益
+    basis: 《广告法》第二十五条
+    suggestion: 删除收益承诺，改为风险与收益并述
+    exempt: 转述
+  - id: edu-001
+    category: 教育培训
+    level: high
+    pattern: 保过
+    basis: 《广告法》第二十四条（不得对升学、通过考试等作保证性承诺）
+    suggestion: 删除“保过”，改为课程内容与服务说明
+    exempt: 转述
+  - id: edu-002
+    category: 教育培训
+    level: high
+    pattern: 包过
+    basis: 《广告法》第二十四条
+    suggestion: 同上：删除保证性承诺
+    exempt: 转述
+
+  # ---------- 平台规则：诱导分享 / 站外导流 ----------
+  - id: plat-001
+    category: 平台规则
+    level: medium
+    pattern: 转发朋友圈
+    basis: 微信公众平台运营规范（诱导分享，公开公示）
+    suggestion: 删除诱导分享话术，改为“欢迎关注”
+    exempt: 转述
+  - id: plat-002
+    category: 平台规则
+    level: medium
+    pattern: 集赞
+    basis: 微信公众平台运营规范（诱导分享）
+    suggestion: 删除集赞要求，改为非条件式互动
+    exempt: 转述
+  - id: plat-003
+    category: 平台规则
+    level: medium
+    pattern: 加微信领
+    basis: 小红书社区规范 / 抖音社区自律公约（站外导流，公开公示）
+    suggestion: 改为平台内合规的获取方式
+    exempt: 转述
+  - id: plat-004
+    category: 平台规则
+    level: medium
+    pattern: 私信领取
+    basis: 平台社区规范（站外导流风险，公开公示）
+    suggestion: 改为“查看主页合集”等平台内动作
+    exempt: 转述
+  - id: plat-005
+    category: 平台规则
+    level: medium
+    pattern: 点击领取
+    basis: 平台社区规范（诱导点击风险，公开公示）
+    suggestion: 改为“查看详情”，不附带利益诱导
+    exempt: 转述
+
+  # ---------- 通用：标题党 ----------
+  - id: gen-001
+    category: 通用表达
+    level: low
+    pattern: 震惊
+    basis: 平台内容质量规范（标题党，公开公示）
+    suggestion: 改为具体、克制的标题表述
+    exempt: 转述
+  - id: gen-002
+    category: 通用表达
+    level: low
+    pattern: 速看
+    basis: 平台内容质量规范（标题党，公开公示）
+    suggestion: 用信息点替代催促式表达
+    exempt: 转述

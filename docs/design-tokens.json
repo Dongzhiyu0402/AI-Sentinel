@@ -1,0 +1,151 @@
+{
+  "$schema": "https://design-tokens.org/schema.json",
+  "$description": "合规哨兵 Compliance Sentinel — Design Tokens v1.0（四层架构：A1-identity / A1-structure / A2 / B-slot / C-extension）",
+  "meta": {
+    "project": "compliance-sentinel",
+    "designer": "颜好看",
+    "date": "2026-10-26",
+    "register": "product",
+    "axes": { "variance": 3, "motion": 3, "density": 6 },
+    "iconLibrary": { "name": "Lucide", "version": "0.4xx", "license": "ISC", "strokeWidth": 1.75 }
+  },
+
+  "color": {
+    "bg":        { "value": "#F4F6F9", "type": "color", "layer": "A1", "role": "页面底色（冷调纸灰）" },
+    "surface":   { "value": "#FFFFFF", "type": "color", "layer": "A1", "role": "卡片/容器" },
+    "fg":        { "value": "#17202E", "type": "color", "layer": "A1", "role": "主文本 15.1:1 on bg" },
+    "muted":     { "value": "#5C6A80", "type": "color", "layer": "A1", "role": "次级文本 4.72:1 on bg / 5.11:1 on surface" },
+    "accent":    { "value": "#16324F", "type": "color", "layer": "A1", "role": "品牌主色 + 唯一强调色（每屏 ≤2 处；白字 13.1:1）" },
+    "border":    { "value": "#DFE5EE", "type": "color", "layer": "A1", "role": "装饰性 1px 分隔（非交互边界）" },
+    "border-strong": { "value": "#7E8CA1", "type": "color", "layer": "A1", "role": "输入框/可交互边界 3.41:1（满足 WCAG 1.4.11）" },
+
+    "surface-2": { "value": "#FAFBFC", "type": "color", "layer": "B-slot", "role": "二级表面：引用条文块/表头" },
+    "surface-sunken": { "value": "#EDF0F5", "type": "color", "layer": "B-slot", "role": "下沉表面：命中词标签/内嵌区" },
+    "fg-2":      { "value": "#3D4A5E", "type": "color", "layer": "B-slot", "role": "长段落正文 9.4:1" },
+    "meta":      { "value": "#8794A8", "type": "color", "layer": "B-slot", "role": "元数据；仅 ≥24px 或图标，禁止正文使用（3.07:1）" },
+    "accent-hover":  { "value": "#203F63", "type": "color", "layer": "A2", "role": "主按钮悬停" },
+    "accent-active": { "value": "#0E2338", "type": "color", "layer": "A2", "role": "主按钮按下" },
+    "accent-on":     { "value": "#FFFFFF", "type": "color", "layer": "A2", "role": "accent 背景上的前景色" },
+    "accent-tint":   { "value": "#E7EDF5", "type": "color", "layer": "C-ext", "role": "选中态/焦点背景" },
+    "accent-line":   { "value": "#2A5480", "type": "color", "layer": "C-ext", "role": "链接与图标强调 4.9:1" },
+    "accent-warm":   { "value": "#A8731B", "type": "color", "layer": "A1", "role": "amber 品牌暖色点，面积 ≤1%，禁止用于徽章/数值/按钮/图标；对白底 4.09:1 不可做正文" },
+    "mark-bg":       { "value": "#FBECEC", "type": "color", "layer": "B-slot", "role": "高风险 <mark> 软底" },
+    "mark-fg":       { "value": "#7E1F26", "type": "color", "layer": "B-slot", "role": "高风险 <mark> 文字 8.67:1" },
+    "mark-med-bg":   { "value": "#FBF2DF", "type": "color", "layer": "B-slot", "role": "中风险 <mark> 软底" },
+    "mark-med-fg":   { "value": "#734C08", "type": "color", "layer": "B-slot", "role": "中风险 <mark> 文字 6.82:1" },
+
+    "risk-high":      { "value": "#A32B32", "type": "color", "layer": "A2", "role": "高风险文字 7.13:1" },
+    "risk-high-soft": { "value": "#FBECEC", "type": "color", "layer": "B-slot", "role": "高风险底色（其上 risk-high 6.2:1）" },
+    "risk-med":       { "value": "#8A5D0E", "type": "color", "layer": "A2", "role": "中风险文字 5.77:1" },
+    "risk-med-soft":  { "value": "#FBF2DF", "type": "color", "layer": "B-slot", "role": "中风险底色" },
+    "risk-low":       { "value": "#4B5B70", "type": "color", "layer": "A2", "role": "提示级/低风险 6.93:1" },
+    "risk-low-soft":  { "value": "#EEF1F6", "type": "color", "layer": "B-slot", "role": "提示级底色" },
+    "success":        { "value": "#1D6B47", "type": "color", "layer": "A2", "role": "通过态文字 6.47:1（仅状态，不做品牌色）" },
+    "success-soft":   { "value": "#E8F4EE", "type": "color", "layer": "B-slot", "role": "通过态底色" },
+    "info":           { "value": "#2A5480", "type": "color", "layer": "A2", "role": "中性说明 4.9:1" }
+  },
+
+  "font": {
+    "family": {
+      "display": { "value": "\"Public Sans\", \"HarmonyOS Sans SC\", \"Source Han Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif", "type": "fontFamily", "layer": "A1" },
+      "body":    { "value": "\"Public Sans\", \"HarmonyOS Sans SC\", \"Source Han Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif", "type": "fontFamily", "layer": "A1" },
+      "mono":    { "value": "\"JetBrains Mono\", \"Sarasa Mono SC\", ui-monospace, \"SFMono-Regular\", Consolas, monospace", "type": "fontFamily", "layer": "A2" }
+    },
+    "weight": {
+      "read":     { "value": "400", "type": "fontWeight", "role": "正文/描述" },
+      "emphasize":{ "value": "500", "type": "fontWeight", "role": "小标题/表头/按钮（中文 500 已足够，不用 510 以免回退）" },
+      "announce": { "value": "600", "type": "fontWeight", "role": "页面主标题/关键数值" }
+    },
+    "size": {
+      "xs":   { "value": "0.75rem",   "type": "dimension", "px": "12px" },
+      "sm":   { "value": "0.8125rem", "type": "dimension", "px": "13px" },
+      "base": { "value": "0.875rem",  "type": "dimension", "px": "14px" },
+      "md":   { "value": "1rem",      "type": "dimension", "px": "16px" },
+      "lg":   { "value": "1.125rem",  "type": "dimension", "px": "18px" },
+      "xl":   { "value": "1.375rem",  "type": "dimension", "px": "22px" },
+      "2xl":  { "value": "1.75rem",   "type": "dimension", "px": "28px" },
+      "3xl":  { "value": "2.25rem",   "type": "dimension", "px": "36px" },
+      "display": { "value": "clamp(1.875rem, 4.2vw, 2.75rem)", "type": "dimension", "layer": "C-ext", "role": "Hero 标题，仅 landing 使用" }
+    },
+    "leading": {
+      "tight":   { "value": "1.25", "type": "number", "role": "标题" },
+      "snug":    { "value": "1.5",  "type": "number", "role": "卡片标题/列表" },
+      "body":    { "value": "1.7",  "type": "number", "role": "中文正文（中文需比拉丁更松）" },
+      "reading": { "value": "1.85", "type": "number", "role": "report 长文摘录" }
+    },
+    "tracking": {
+      "display": { "value": "-0.015em", "type": "dimension", "role": "≥28px 标题" },
+      "heading": { "value": "-0.005em", "type": "dimension", "role": "18-22px 标题" },
+      "body":    { "value": "0",        "type": "dimension", "role": "正文" },
+      "label":   { "value": "0.01em",   "type": "dimension", "role": "12-13px 辅助" },
+      "caps":    { "value": "0.08em",   "type": "dimension", "role": "全大写/去空格标签，必填" }
+    }
+  },
+
+  "space": {
+    "1":  { "value": "4px",  "type": "dimension" },
+    "2":  { "value": "8px",  "type": "dimension" },
+    "3":  { "value": "12px", "type": "dimension" },
+    "4":  { "value": "16px", "type": "dimension" },
+    "5":  { "value": "20px", "type": "dimension" },
+    "6":  { "value": "24px", "type": "dimension" },
+    "8":  { "value": "32px", "type": "dimension" },
+    "10": { "value": "40px", "type": "dimension" },
+    "12": { "value": "48px", "type": "dimension" },
+    "16": { "value": "64px", "type": "dimension", "role": "仅 landing Hero" }
+  },
+
+  "radius": {
+    "sm":   { "value": "6px",    "type": "dimension", "role": "按钮/输入框/徽章" },
+    "md":   { "value": "8px",    "type": "dimension", "role": "行内卡片/命中词标签" },
+    "lg":   { "value": "12px",   "type": "dimension", "role": "主卡片上限，禁止 ≥16" },
+    "pill": { "value": "9999px", "type": "dimension", "role": "仅状态徽章" }
+  },
+
+  "shadow": {
+    "flat":   { "value": "none", "type": "boxShadow", "role": "默认：靠 1px 边框分层" },
+    "ring":   { "value": "0 0 0 1px #DFE5EE", "type": "boxShadow", "role": "卡片的唯一层级手段" },
+    "raised": { "value": "0 1px 2px rgba(16,36,56,0.05), 0 4px 8px rgba(16,36,56,0.05)", "type": "boxShadow", "role": "仅浮层/吸底栏；模糊 ≤8px，禁止与 1px 边框同时出现" },
+    "focus":  { "value": "0 0 0 2px #FFFFFF, 0 0 0 4px rgba(22,50,79,0.42)", "type": "boxShadow", "role": "focus-visible 专用" }
+  },
+
+  "motion": {
+    "instant": { "value": "90ms",  "type": "duration", "role": "按下/勾选" },
+    "fast":    { "value": "120ms", "type": "duration", "role": "hover/色变（收敛值）" },
+    "base":    { "value": "160ms", "type": "duration", "role": "展开/淡入" },
+    "slow":    { "value": "240ms", "type": "duration", "role": "结果区进入，全站上限" },
+    "ease":    { "value": "cubic-bezier(0.22, 0.61, 0.36, 1)", "type": "cubicBezier", "role": "标准 ease-out；禁止任何 overshoot / 弹跳" },
+    "ease-in-out": { "value": "cubic-bezier(0.45, 0, 0.25, 1)", "type": "cubicBezier", "role": "跨态位移" }
+  },
+
+  "layout": {
+    "container":     { "value": "1080px", "type": "dimension" },
+    "container-narrow": { "value": "720px", "type": "dimension", "role": "报告长文阅读列" },
+    "gutter":        { "value": "20px",  "type": "dimension", "role": "移动端 16px" },
+    "section-y-desktop": { "value": "64px", "type": "dimension" },
+    "section-y-tablet":  { "value": "48px", "type": "dimension" },
+    "section-y-phone":   { "value": "32px", "type": "dimension" },
+    "breakpoint": {
+      "sm": { "value": "640px",  "type": "dimension" },
+      "md": { "value": "768px",  "type": "dimension" },
+      "lg": { "value": "1024px", "type": "dimension" }
+    },
+    "tap-target-min": { "value": "44px", "type": "dimension", "role": "WCAG 2.5.5" }
+  },
+
+  "icon": {
+    "library": { "value": "Lucide (ISC)", "type": "string" },
+    "stroke":  { "value": "1.75", "type": "number" },
+    "size-inline": { "value": "16px", "type": "dimension", "role": "徽章/正文内" },
+    "size-button": { "value": "20px", "type": "dimension", "role": "按钮内" },
+    "size-standalone": { "value": "24px", "type": "dimension", "role": "导航/区块强调" }
+  },
+
+  "zIndex": {
+    "base":   { "value": "0",    "type": "number" },
+    "sticky": { "value": "100",  "type": "number" },
+    "bar":    { "value": "200",  "type": "number", "role": "移动端吸底操作栏" },
+    "overlay":{ "value": "300",  "type": "number" },
+    "toast":  { "value": "400",  "type": "number" }
+  }
+}

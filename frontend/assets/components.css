@@ -1,0 +1,281 @@
+/* ==========================================================================
+   合规哨兵 —— 组件层（工具卡 / 反馈条 / 总览行 / AI 标识 / 分级筛选）
+   只消费 design-tokens.css 的变量；本文件不出现任何裸色值，不含内联样式。
+   引入顺序：styles.css → design-tokens.css → components.css → report.css
+   ========================================================================== */
+
+/* ── 图标：尺寸只有 16 / 20 / 24 三档 ─────────────────────────────────── */
+.icon { display: inline-block; flex: none; vertical-align: -0.125em; }
+.icon-16 { width: var(--icon-inline); height: var(--icon-inline); }
+.icon-20 { width: var(--icon-button); height: var(--icon-button); }
+.icon-24 { width: var(--icon-standalone); height: var(--icon-standalone); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 按钮：loading 用类切换，绝不用 textContent 覆盖（会吞掉图标） ────── */
+.btn { min-height: 44px; }
+.btn .btn-label { white-space: nowrap; }
+#checkBtn { min-width: 11.5rem; justify-content: center; }
+.btn .icon-spin { display: none; }
+.btn.is-loading .icon-scan { display: none; }
+.btn.is-loading .icon-spin {
+  display: inline-block;
+  animation: spin 900ms linear infinite;
+}
+.btn.is-loading { cursor: progress; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn.is-loading .icon-spin { animation: none; }
+}
+
+/* 复制的兼容退化路径：不改内联样式，靠类定位到视口外 */
+.copy-shim {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── 字数计数与超限提示 ───────────────────────────────────────────────── */
+.char-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.char-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
+  margin-left: auto;
+}
+.char-count.is-near { color: var(--risk-med); }
+.char-count.is-over { color: var(--risk-high); }
+.field-warn {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--risk-high);
+}
+
+/* ── 反馈区：错误条（--risk-high）与中性引导（--muted） ───────────────── */
+.feedback { margin-top: var(--space-3); display: grid; gap: var(--space-2); }
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.alert-icon { color: var(--muted); margin-top: 1px; }
+.alert-body { flex: 1 1 auto; min-width: 0; }
+.alert-text {
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  color: var(--fg);
+}
+.alert-sub {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--muted);
+}
+.alert.is-error { border-color: var(--risk-high); background: var(--risk-high-soft); }
+.alert.is-error .alert-icon { color: var(--risk-high); }
+.alert.is-error .alert-text { color: var(--risk-high); }
+.alert.is-warn { border-color: var(--risk-med); background: var(--risk-med-soft); }
+.alert.is-warn .alert-icon { color: var(--risk-med); }
+.alert .btn { flex: none; }
+
+/* 未输入时点检测：中性引导，不用红色、不出 role="alert" */
+.hint-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+.hint-guide .icon { color: var(--info); margin-top: 2px; }
+
+/* 加载中的状态播报（视觉极轻，仅屏幕阅读器与耐心提示） */
+.load-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* ── 报告：标题与总览行（一行式，不做 4 张同尺寸卡） ──────────────────── */
+.results-title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-announce);
+  letter-spacing: var(--tracking-heading);
+  color: var(--fg);
+}
+.results-title:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.overview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-3);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.overview-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.ov-item { display: inline-flex; align-items: baseline; gap: var(--space-2); }
+.ov-num {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-announce);
+  letter-spacing: var(--tracking-display);
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.ov-num.is-high { color: var(--risk-high); }
+.ov-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  align-self: center;
+}
+.overview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  margin-left: auto;
+}
+.overview-meta .mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+}
+
+/* ── AI 标识区块 ──────────────────────────────────────────────────────── */
+.ai-block:empty { display: none; }
+.ai-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--fg-2);
+}
+.ai-panel .ai-icon { flex: none; color: var(--muted); margin-top: 2px; }
+.ai-panel .ai-body { flex: 1 1 auto; min-width: 0; }
+.ai-panel .ai-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-emphasize);
+  color: var(--fg);
+}
+.ai-panel .ai-text {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  line-height: var(--leading-reading);
+}
+.ai-panel .ai-suggestion {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+  color: var(--fg);
+}
+.ai-panel.is-missing {
+  border-color: var(--risk-med);
+  background: var(--risk-med-soft);
+}
+.ai-panel.is-missing .ai-icon { color: var(--risk-med); }
+.ai-panel.is-ok { border-color: var(--success); background: var(--success-soft); }
+.ai-panel.is-ok .ai-icon { color: var(--success); }
+
+/* ── 分级筛选 chips ──────────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.chip {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-emphasize);
+  color: var(--fg-2);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard),
+              border-color var(--motion-fast) var(--ease-standard),
+              color var(--motion-fast) var(--ease-standard);
+}
+.chip:hover { border-color: var(--accent-line); color: var(--accent-line); }
+.chip[aria-pressed="true"] {
+  background: var(--accent-tint);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.chip .chip-count {
+  margin-left: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.chip[aria-pressed="true"] .chip-count { color: var(--accent); }
+
+/* ── 报告操作区（移动端吸底） ─────────────────────────────────────────── */
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+.result-actions .btn { justify-content: center; }
+
+@media (max-width: 639px) {
+  .result-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--z-bar);
+    margin-top: var(--space-5);
+    padding: var(--space-3) 0 calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: var(--elev-raised);
+  }
+  .result-actions .btn { flex: 1 1 0; }
+  .overview-meta { margin-left: 0; }
+}

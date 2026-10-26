@@ -1,0 +1,232 @@
+/* ==========================================================================
+   合规哨兵 Compliance Sentinel — Design Tokens v1.0
+   --------------------------------------------------------------------------
+   设计师：颜好看 | 2026-10-26 | 依据：docs/SPEC.md v0.2 + design-tokens.json
+   架构：A1-identity → A1-structure → A2 → B-slot → C-extension
+
+   引入方式（重要）：必须放在 styles.css 之后，才能以 Token 覆写既有变量。
+     <link rel="stylesheet" href="/assets/styles.css">
+     <link rel="stylesheet" href="/assets/design-tokens.css">
+
+   末尾提供「Legacy Alias」把 styles.css 现有 --color-* / --radius-* /
+   --shadow-soft / --font-sans 映射到新 Token，因此无需改动 styles.css。
+
+   生产 CSP 为 default-src 'self'; script-src 'self'; style-src 'self'，
+   因此本文件是**唯一**样式来源，页面内不允许 style="..." 内联样式，
+   也不允许内联 <script> / onclick=。所有状态变化走 CSS 类切换。
+   ========================================================================== */
+
+:root {
+  /* ── A1-identity：品牌底色与文本 ───────────────────────────────────── */
+  --bg:              #F4F6F9;   /* 页面底色：冷调纸灰，不用奶油/米色 */
+  --surface:         #FFFFFF;
+  --surface-2:       #FAFBFC;   /* 二级表面：引用条文块 / 表头 */
+  --surface-sunken:  #EDF0F5;   /* 下沉表面：命中词标签 / 内嵌区 */
+
+  --fg:              #17202E;   /* 主文本 15.1:1 */
+  --fg-2:            #3D4A5E;   /* 长段落 9.4:1 */
+  --muted:           #5C6A80;   /* 次级文本 4.72:1 on bg */
+  --meta:            #8794A8;   /* 仅 ≥24px 或图标，3.07:1 —— 禁止正文 */
+
+  --border:          #DFE5EE;   /* 装饰性 1px 分隔（非交互边界） */
+  --border-strong:   #7E8CA1;   /* 可交互边界 3.41:1，满足 WCAG 1.4.11 */
+  --border-soft:     #F0F3F8;   /* 行内极细分隔 */
+
+  /* ── A1-identity：强调色分工（共 2 支，符合"主色 ≤3"） ──────────────── */
+  /* --accent（navy）= 可交互强调：主 CTA、当前选中、焦点。每屏 ≤2 处。
+     --accent-warm（amber）= 品牌暖色点：仅"非语义的品牌标记"位置可用，
+       面积 ≤1%，禁止出现在徽章 / 数值 / 按钮 / 图标 / 图表上。
+
+     注意：为什么 amber 不做主 CTA：amber 原值 #A8731B 对白底仅 4.09:1，
+     未达 AA 正文 4.5:1。它一旦承担强调色就必须上面积，而"中风险"占着
+     同一暖色族，两块暖色同屏会让用户无法区分"品牌"与"警报"。故把 amber
+     交给风险语义（--risk-med #8A5D0E，5.77:1 达标），navy 承担可交互强调。
+     两者都存在、都可见，只是分工不同 —— 详见 DESIGN.md §2。               */
+  --accent:          #16324F;   /* navy，白字 13.1:1 */
+  --accent-on:       #FFFFFF;
+  --accent-hover:    #203F63;
+  --accent-active:   #0E2338;
+  --accent-tint:     #E7EDF5;   /* 选中/焦点背景 */
+  --accent-line:     #2A5480;   /* 文字链与图标强调 4.9:1 */
+  --accent-warm:     #A8731B;   /* amber，面积 ≤1%，仅品牌标记；4.09:1 不可做正文 */
+
+  /* ── A2：风险分级（三级，语义唯一，不复用强调色） ─────────────────── */
+  --risk-high:       #A32B32;   /* 7.13:1 */
+  --risk-med:        #8A5D0E;   /* 5.77:1 */
+  --risk-low:        #4B5B70;   /* 6.93:1 */
+  --risk-high-soft:  #FBECEC;
+  --risk-med-soft:   #FBF2DF;
+  --risk-low-soft:   #EEF1F6;
+
+  /* 原文高亮（<mark>）—— 只允许用 textContent 分段 + <mark> 拼接，禁止 innerHTML */
+  --mark-bg:         #FBECEC;   /* 高风险命中：软底，不盖满整行 */
+  --mark-fg:         #7E1F26;   /* 软底上 8.67:1 */
+  --mark-med-bg:     #FBF2DF;
+  --mark-med-fg:     #734C08;   /* 软底上 6.82:1 */
+
+  /* ── A2：状态色（仅在结果/反馈中出现，不做品牌色） ─────────────────── */
+  --success:         #1D6B47;
+  --success-soft:    #E8F4EE;
+  --info:            #2A5480;
+
+  /* ── A1-structure：字体 ───────────────────────────────────────────── */
+  /* 拉丁优先 Public Sans（准官方文书气质），中文优先 HarmonyOS Sans SC，
+     未安装时回退苹方。层级靠字号/字重/字距建立，不靠换字体制造差异。     */
+  --font-display: "Public Sans", "HarmonyOS Sans SC", "Source Han Sans SC",
+                  "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-body:    "Public Sans", "HarmonyOS Sans SC", "Source Han Sans SC",
+                  "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono:    "JetBrains Mono", "Sarasa Mono SC", ui-monospace,
+                  "SFMono-Regular", Consolas, monospace;
+
+  --weight-read:     400;
+  --weight-emphasize: 500;   /* 中文 500 已足够，避免 510/590 在系统字体回退 */
+  --weight-announce:  600;
+
+  /* 8 级字号（可读性下限 12px，正文 14-16px） */
+  --text-xs:      0.75rem;    /* 12px 徽章/角标 */
+  --text-sm:      0.8125rem;  /* 13px 辅助说明 */
+  --text-base:    0.875rem;   /* 14px 卡片正文/按钮 */
+  --text-md:      1rem;       /* 16px 主要阅读正文 */
+  --text-lg:      1.125rem;   /* 18px 区块标题 */
+  --text-xl:      1.375rem;   /* 22px 页面级小节标题 */
+  --text-2xl:     1.75rem;    /* 28px 结果关键数值 */
+  --text-3xl:     2.25rem;    /* 36px 报告主标题 */
+
+  /* C-extension：Hero 专用，仅 landing 第一屏 */
+  --text-display: clamp(1.875rem, 4.2vw, 2.75rem);
+  --leading-display: 1.22;
+
+  /* 行高 */
+  --leading-tight:   1.25;
+  --leading-snug:    1.5;
+  --leading-body:    1.7;    /* 中文正文比拉丁更松 */
+  --leading-reading: 1.85;   /* 原文摘录/依据条文 */
+
+  /* 字距（决定工艺观感） */
+  --tracking-display: -0.015em;  /* ≥28px 标题 */
+  --tracking-heading: -0.005em;  /* 18-22px 标题 */
+  --tracking-body:     0;
+  --tracking-label:    0.01em;   /* 12-13px 辅助 */
+  --tracking-caps:     0.08em;   /* 全大写 / 去空格标签，必填 */
+
+  /* ── A1-structure：间距（4px 网格，只允许这 10 档） ────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── A1-structure：圆角（卡片上限 12px，禁止 ≥16 的"过度圆滑"） ───── */
+  --radius-sm:   6px;     /* 按钮 / 输入框 / 徽章 */
+  --radius-md:   8px;     /* 命中词标签 / 内嵌块 */
+  --radius-lg:   12px;    /* 主卡片上限 */
+  --radius-pill: 9999px;  /* 仅状态徽章 */
+
+  /* ── A2：层级（默认靠 1px 边框分层，阴影克制） ─────────────────────── */
+  --elev-flat:   none;
+  --elev-ring:   0 0 0 1px var(--border);
+  --elev-raised: 0 1px 2px rgba(16, 36, 56, 0.05),
+                 0 4px 8px rgba(16, 36, 56, 0.05);
+  --focus-ring:  0 0 0 2px var(--surface), 0 0 0 4px rgba(22, 50, 79, 0.42);
+
+  /* ── A2：动效（120ms 为收敛值，全站上限 240ms，禁止 overshoot） ────── */
+  --motion-instant: 90ms;
+  --motion-fast:    120ms;
+  --motion-base:    160ms;
+  --motion-slow:    240ms;
+  --ease-standard:  cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out:    cubic-bezier(0.45, 0, 0.25, 1);
+
+  /* ── A1-structure：布局 ──────────────────────────────────────────── */
+  --container-max:      1080px;
+  --container-narrow:   720px;   /* 报告长文阅读列，50-75 字符/行 */
+  --container-gutter:   20px;
+  --section-y-desktop:  64px;
+  --section-y-tablet:   48px;
+  --section-y-phone:    32px;
+
+  /* ── B-slot：图标（Lucide ISC，stroke 1.75，尺寸 16/20/24） ───────── */
+  --icon-inline:     16px;
+  --icon-button:     20px;
+  --icon-standalone: 24px;
+  --icon-stroke:     1.75;
+
+  /* ── B-slot：层级 z-index ─────────────────────────────────────────── */
+  --z-base:    0;
+  --z-sticky:  100;
+  --z-bar:     200;   /* 移动端吸底操作栏 */
+  --z-overlay: 300;
+  --z-toast:   400;
+}
+
+/* ==========================================================================
+   Legacy Alias —— 让现有 styles.css 无需改动即可吃到新 Token
+   （仍使用 --color-ink 等旧名的规则会自动切换到新值）
+   ========================================================================== */
+:root {
+  --color-ink:         var(--fg);
+  --color-ink-2:       var(--fg-2);
+  --color-ink-3:       var(--muted);
+  --color-paper:       var(--bg);
+  --color-surface:     var(--surface);
+  --color-line:        var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-navy:        var(--accent);
+  --color-navy-2:      var(--accent-line);
+
+  /* 旧 --color-amber 同时承担「品牌 eyebrow」与「中风险」两种语义，
+     此处统一归入 risk-med；eyebrow 的语义收敛到 --meta / --accent，
+     前端迁移时请按 DESIGN.md §4 拆开，不再复用 --color-amber 做品牌强调。 */
+  --color-amber:       var(--risk-med);
+  --color-amber-soft:  var(--risk-med-soft);
+
+  --color-red:         var(--risk-high);
+  --color-red-soft:    var(--risk-high-soft);
+  --color-green:       var(--success);
+  --color-green-soft:  var(--success-soft);
+
+  --radius-s: var(--radius-sm);
+  --radius-m: var(--radius-md);
+  --radius-l: var(--radius-lg);
+
+  --shadow-soft: var(--elev-raised);   /* 收紧：模糊从 30px 降到 8px，消除"幽灵卡片" */
+  --font-sans:   var(--font-body);
+}
+
+/* ==========================================================================
+   全局可访问性基元（非组件样式，只兜底）
+   ========================================================================== */
+
+/* 可见焦点：键盘可达的唯一视觉保证，任何组件都不允许 outline: none 而不给替代 */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--accent-tint);
+  color: var(--fg);
+}
+
+/* 尊重系统降级偏好：关闭所有位移/淡入，保留状态色变化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 200% 文字放大时不出现横向滚动：允许浏览器放大字号而不锁定缩放 */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>合规哨兵 - 发布前内容合规体检</title>
+  <meta name="description" content="粘贴文案，得到内容合规风险清单：命中原文、依据条文、可直接替换的写法，并检查 AI 生成内容标识。">
+  <!-- 顺序不可调换：先基础样式，再由 design-tokens.css 的 Legacy Alias 覆写 Token -->
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/design-tokens.css">
+  <link rel="stylesheet" href="/assets/components.css">
+  <link rel="stylesheet" href="/assets/report.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="合规哨兵首页">
+        <svg class="icon icon-24 brand-mark" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#i-shield-check"></use></svg>
+        <span class="brand-name">合规哨兵</span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="#tool">开始体检</a>
+        <a href="#how">工作方式</a>
+        <a href="#notice">合规声明</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <p class="eyebrow">发布前内容合规体检</p>
+      <h1>别人只标红，<br>我们帮改好。</h1>
+      <p class="lede">粘贴公众号、小红书或抖音文案，得到风险清单：每条命中都附<strong>命中原文</strong>、<strong>依据条文</strong>与<strong>可直接替换的写法</strong>，并检查 AI 生成内容标识是否到位。</p>
+      <div class="meta-row" id="metaRow" aria-live="polite">
+        <span class="meta-item">正在读取规则库信息</span>
+      </div>
+    </section>
+
+    <section class="container" id="tool">
+      <div class="panel">
+        <div class="panel-head">
+          <label class="field-label" for="textInput">待检测文本</label>
+          <span class="field-note" id="limitHint">单次最多 20000 字，正文粘贴即可</span>
+        </div>
+        <textarea id="textInput" class="text-input" placeholder="粘贴需要体检的文案，例如：本店新品全网最低价，国家级认证……" spellcheck="false" aria-describedby="limitHint privacyHint"></textarea>
+        <div class="char-line">
+          <p class="char-count" id="charCount" aria-live="off"><span id="charNow">0</span> / 20000</p>
+        </div>
+        <p class="field-warn" id="lengthWarn" hidden></p>
+        <div class="toolbar">
+          <label class="check" for="aiCheck">
+            <input type="checkbox" id="aiCheck">
+            <span>文中包含 AI 生成内容</span>
+          </label>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" type="button" id="sampleBtn">
+              <svg class="icon icon-20" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#i-clipboard-paste"></use></svg>
+              <span class="btn-label">载入示例</span>
+            </button>
+            <button class="btn btn-primary" type="button" id="checkBtn" aria-busy="false">
+              <svg class="icon icon-20 icon-scan" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#i-scan-text"></use></svg>
+              <svg class="icon icon-20 icon-spin" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#i-loader-circle"></use></svg>
+              <span class="btn-label" id="checkBtnLabel">开始体检</span>
+            </button>
+          </div>
+        </div>
+        <p class="hint" id="privacyHint">文本仅用于本次检测，默认不落库；同一 IP 每小时最多 60 次。本工具提供自查参考，不构成法律意见。</p>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </section>
+
+    <section class="container results" id="results" hidden aria-live="polite">
+      <h2 class="results-title" id="resultsTitle" tabindex="-1">体检结果</h2>
+      <div class="overview" id="overview"></div>
+      <div class="ai-block" id="aiBlock"></div>
+      <div class="chips" id="chips" role="group" aria-label="按风险等级筛选" hidden></div>
+      <div class="finding-list" id="findingList"></div>
+      <p class="disclaimer" id="disclaimer"></p>
+      <div class="result-actions">
+        <button class="btn btn-ghost" type="button" id="copyAllBtn">
+          <svg class="icon icon-20" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#i-copy"></use></svg>
+          <span class="btn-label">复制全部建议</span>
+        </button>
+        <button class="btn btn-ghost" type="button" id="recheckBtn">
+          <svg class="icon icon-20" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#i-refresh-cw"></use></svg>
+          <span class="btn-label">重新体检</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="container how" id="how">
+      <h2>工作方式</h2>
+      <div class="how-grid">
+        <article class="how-item">
+          <span class="how-index">01</span>
+          <h3>规则引擎扫一遍</h3>
+          <p>广告法绝对化用语、特种行业敏感表述、平台高频红线，命中即给出依据条文与命中位置。</p>
+        </article>
+        <article class="how-item">
+          <span class="how-index">02</span>
+          <h3>改法成句</h3>
+          <p>每条命中给出可直接替换的写法；模型不可用时降级为规则模板建议，检测结果不受影响。</p>
+        </article>
+        <article class="how-item">
+          <span class="how-index">03</span>
+          <h3>标识合规检查</h3>
+          <p>你声明文中含 AI 生成内容后，检查显式标识是否到位，并给出可粘贴的标识话术。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="notice">
+    <div class="container footer-inner">
+      <div>
+        <p class="footer-title"><span class="brand-dot" aria-hidden="true"></span>合规哨兵</p>
+        <p class="footer-text">内容合规自查工具 · 第十五届中国创新创业大赛 AI+OPC 创新应用专业赛参赛项目</p>
+      </div>
+      <p class="footer-text footer-note">本工具仅提供内容风险自查参考，不构成法律意见，不替代平台审核，不保证发布结果。涉及具体法律问题请咨询专业律师。</p>
+    </div>
+  </footer>
+
+  <script src="/assets/api.js"></script>
+  <script src="/assets/ui.js"></script>
+  <script src="/assets/findings.js"></script>
+  <script src="/assets/app.js"></script>
+</body>
+</html>
